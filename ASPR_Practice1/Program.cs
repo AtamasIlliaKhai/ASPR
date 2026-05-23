@@ -21,7 +21,10 @@ namespace ASPR_Practice1
                 Console.WriteLine("1 - Пошук оберненої матриці");
                 Console.WriteLine("2 - Обчислення рангу матриці");
                 Console.WriteLine("5 - Розв'язання СЛАР методом Гауса");
-                Console.WriteLine("9 - Виконати власний варіант 3");
+                Console.WriteLine("6 - Пошук опорного розв'язку задачі ЛП");
+                Console.WriteLine("7 - Пошук оптимального розв'язку задачі ЛП");
+                Console.WriteLine("8 - Виконати власний варіант 3 для задачі ЛП");
+                Console.WriteLine("9 - Виконати власний варіант 3 для задачі СЛАР");
                 Console.WriteLine("0 - Вихід");
                 Console.WriteLine();
                 Console.Write("Ваш вибір: ");
@@ -45,6 +48,17 @@ namespace ASPR_Practice1
                             RunGaussTask();
                             break;
 
+                        case "6":
+                            RunReferenceSolutionTask();
+                            break;
+
+                        case "7":
+                            RunOptimalSolutionTask();
+                            break;
+
+                        case "8":
+                            RunLinearProgrammingVariant3();
+                            break;
                         case "9":
                             RunVariant3();
                             break;
@@ -179,6 +193,195 @@ namespace ASPR_Practice1
             Console.WriteLine(gaussReport.GetReport());
         }
 
+        private static void RunReferenceSolutionTask()
+        {
+            Console.WriteLine("Пошук опорного розв'язку задачі лінійного програмування");
+            LinearProgrammingProblem problem = ReadLinearProgrammingProblem();
+
+            ReportBuilder report = new ReportBuilder();
+            SimplexSolver solver = new SimplexSolver();
+
+            SimplexResult result = solver.FindReferenceSolution(problem, report);
+
+            Console.WriteLine();
+            Console.WriteLine("Опорний розв'язок:");
+            Console.WriteLine(result);
+
+            Console.WriteLine();
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunOptimalSolutionTask()
+        {
+            Console.WriteLine("Пошук оптимального розв'язку задачі лінійного програмування");
+            LinearProgrammingProblem problem = ReadLinearProgrammingProblem();
+
+            ReportBuilder report = new ReportBuilder();
+            SimplexSolver solver = new SimplexSolver();
+
+            SimplexResult result = solver.FindOptimalSolution(problem, report);
+
+            Console.WriteLine();
+            Console.WriteLine("Оптимальний розв'язок:");
+            Console.WriteLine(result);
+
+            Console.WriteLine();
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunLinearProgrammingVariant3()
+        {
+            Console.WriteLine("Власний варіант 3. Практична робота 1B.");
+            Console.WriteLine("У другій нерівності знак змінено на протилежний: <= замінено на >=.");
+            Console.WriteLine();
+
+            LinearProgrammingProblem problem = LinearProgrammingProblem.CreateVariant3();
+
+            Console.WriteLine("Постановка задачі:");
+            Console.WriteLine(problem);
+            Console.WriteLine();
+
+            ReportBuilder referenceReport = new ReportBuilder();
+            SimplexSolver solver = new SimplexSolver();
+
+            SimplexResult referenceResult = solver.FindReferenceSolution(problem, referenceReport);
+
+            Console.WriteLine("Опорний розв'язок:");
+            Console.WriteLine(referenceResult);
+            Console.WriteLine("Протокол пошуку опорного розв'язку:");
+            Console.WriteLine(referenceReport.GetReport());
+
+            ReportBuilder optimalReport = new ReportBuilder();
+            SimplexResult optimalResult = solver.FindOptimalSolution(problem, optimalReport);
+
+            Console.WriteLine("Оптимальний розв'язок:");
+            Console.WriteLine(optimalResult);
+            Console.WriteLine("Протокол пошуку оптимального розв'язку:");
+            Console.WriteLine(optimalReport.GetReport());
+        }
+
+        private static LinearProgrammingProblem ReadLinearProgrammingProblem()
+        {
+            Console.Write("Кількість змінних: ");
+            int variableCount = ReadInt();
+
+            Console.Write("Кількість нерівностей: ");
+            int inequalityCount = ReadInt();
+
+            Inequality[] inequalities = new Inequality[inequalityCount];
+
+            for (int i = 0; i < inequalityCount; i++)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Нерівність " + (i + 1));
+
+                double[] coefficients = ReadDoubleArray(variableCount);
+
+                Console.WriteLine("Оберіть знак нерівності:");
+                Console.WriteLine("1 - <=");
+                Console.WriteLine("2 - >=");
+                Console.Write("Ваш вибір: ");
+
+                int signNumber = ReadInt();
+
+                InequalitySign sign;
+
+                if (signNumber == 1)
+                {
+                    sign = InequalitySign.LessOrEqual;
+                }
+                else
+                {
+                    sign = InequalitySign.GreaterOrEqual;
+                }
+
+                Console.Write("Права частина нерівності: ");
+                double rightPart = ReadDouble();
+
+                inequalities[i] = new Inequality(coefficients, sign, rightPart);
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Введіть коефіцієнти функції мети:");
+            double[] goal = ReadDoubleArray(variableCount);
+
+            Console.WriteLine("Оберіть тип задачі:");
+            Console.WriteLine("1 - max");
+            Console.WriteLine("2 - min");
+            Console.Write("Ваш вибір: ");
+
+            int goalTypeNumber = ReadInt();
+
+            GoalType goalType;
+
+            if (goalTypeNumber == 2)
+            {
+                goalType = GoalType.Minimize;
+            }
+            else
+            {
+                goalType = GoalType.Maximize;
+            }
+
+            return new LinearProgrammingProblem(goal, goalType, inequalities);
+        }
+
+        private static double[] ReadDoubleArray(int count)
+        {
+            while (true)
+            {
+                Console.WriteLine("Введіть " + count + " чисел через пробіл, кому або крапку з комою:");
+                string line = Console.ReadLine();
+
+                string[] parts = line.Split(
+                    new char[] { ' ', ',', ';' },
+                    StringSplitOptions.RemoveEmptyEntries
+                );
+
+                if (parts.Length != count)
+                {
+                    Console.WriteLine("Помилка: потрібно ввести " + count + " чисел.");
+                    continue;
+                }
+
+                double[] result = new double[count];
+                bool success = true;
+
+                for (int i = 0; i < count; i++)
+                {
+                    double value;
+
+                    if (!double.TryParse(parts[i].Replace('.', ','), out value))
+                    {
+                        success = false;
+                        break;
+                    }
+
+                    result[i] = value;
+                }
+
+                if (success)
+                {
+                    return result;
+                }
+
+                Console.WriteLine("Помилка формату числа.");
+            }
+        }
+
+        private static double ReadDouble()
+        {
+            double value;
+
+            while (!double.TryParse(Console.ReadLine().Replace('.', ','), out value))
+            {
+                Console.Write("Введіть число: ");
+            }
+
+            return value;
+        }
         private static Matrix ReadMatrix()
         {
             Console.Write("Кількість рядків: ");
