@@ -6,6 +6,25 @@ namespace ASPR_Practice1
     {
         private const double Epsilon = 0.0000001;
 
+        public SimplexTable CrossOutZeroRowsOnly(LinearProgrammingProblem problem, ReportBuilder report)
+        {
+            SimplexTable table = BuildInitialTable(problem);
+
+            report.AddTitle("Видалення нуль-рядків у симплекс-таблиці");
+            report.AddText("Постановка задачі:");
+            report.AddText(problem.ToString());
+            report.AddText("");
+            report.AddText("Вхідна симплекс-таблиця:");
+            report.AddText(table.ToString());
+
+            table = CrossOutZeroRows(table, report);
+
+            report.AddText("Вихідна симплекс-таблиця після видалення нуль-рядків:");
+            report.AddText(table.ToString());
+
+            return table;
+        }
+
         public SimplexResult FindReferenceSolution(LinearProgrammingProblem problem, ReportBuilder report)
         {
             SimplexTable table = BuildInitialTable(problem);
@@ -15,6 +34,10 @@ namespace ASPR_Practice1
             report.AddText(problem.ToString());
             report.AddText("");
             report.AddText("Вхідна симплекс-таблиця:");
+            report.AddText(table.ToString());
+
+            table = CrossOutZeroRows(table, report);
+            report.AddText("Симплекс-таблиця після видалення нуль-рядків:");
             report.AddText(table.ToString());
 
             table = MakeReferenceSolution(table, report);
@@ -38,6 +61,10 @@ namespace ASPR_Practice1
             report.AddText("Вхідна симплекс-таблиця:");
             report.AddText(table.ToString());
 
+            table = CrossOutZeroRows(table, report);
+            report.AddText("Симплекс-таблиця після видалення нуль-рядків:");
+            report.AddText(table.ToString());
+
             table = MakeReferenceSolution(table, report);
             table = MakeOptimalSolution(table, report);
 
@@ -52,6 +79,7 @@ namespace ASPR_Practice1
         private SimplexTable BuildInitialTable(LinearProgrammingProblem problem)
         {
             double[,] rowsData = problem.GetSimplexRows();
+            string[] rowNames = problem.GetInitialRowNames();
 
             int constraintCount = rowsData.GetLength(0);
             int variableCount = problem.VariableCount;
@@ -63,7 +91,7 @@ namespace ASPR_Practice1
 
             for (int i = 0; i < constraintCount; i++)
             {
-                table.RowNames[i] = "y" + (i + 1);
+                table.RowNames[i] = rowNames[i];
             }
 
             table.RowNames[rows - 1] = "Z";
@@ -83,12 +111,6 @@ namespace ASPR_Practice1
                 }
             }
 
-            /*
-             * Для задачі max у рядок Z записуємо коефіцієнти зі знаком мінус.
-             * Це відповідає зразку:
-             * Z = x1 + 2*x2 + x3 -> max
-             * у таблиці: -1, -2, -1, ...
-             */
             for (int j = 0; j < variableCount; j++)
             {
                 if (problem.GoalType == GoalType.Maximize)
@@ -102,6 +124,68 @@ namespace ASPR_Practice1
             }
 
             table[rows - 1, columns - 1] = 0;
+
+            return table;
+        }
+
+        private SimplexTable CrossOutZeroRows(SimplexTable table, ReportBuilder report)
+        {
+            table = table.Copy();
+
+            int step = 1;
+            int maxSteps = 100;
+
+            report.AddTitle("Етап 0. Видалення нуль-рядків");
+
+            while (true)
+            {
+                if (step > maxSteps)
+                {
+                    throw new Exception("Перевищено допустиму кількість кроків під час видалення нуль-рядків.");
+                }
+
+                int zeroRow = FindFirstZeroRow(table);
+
+                if (zeroRow == -1)
+                {
+                    report.AddText("Нуль-рядків у симплекс-таблиці немає.");
+                    break;
+                }
+
+                int pivotColumn = FindFirstPositiveInRow(table, zeroRow);
+
+                if (pivotColumn == -1)
+                {
+                    throw new Exception("Система обмежень є суперечливою: у нуль-рядку немає додатних коефіцієнтів.");
+                }
+
+                int pivotRow = FindPivotRowByLectureRule(table, pivotColumn);
+
+                if (pivotRow == -1)
+                {
+                    break;
+                }
+
+                report.AddStep(
+                    step,
+                    "Розв'язувальний рядок: " + pivotRow + " (" + table.RowNames[pivotRow] + ")\r\n" +
+                    "Розв'язувальний стовпець: " + pivotColumn + " (" + table.ColumnNames[pivotColumn] + ")\r\n" +
+                    "Розв'язувальний елемент: " + Math.Round(table[pivotRow, pivotColumn], 4)
+                );
+
+                table = table.ModifiedJordanElimination(pivotRow, pivotColumn);
+
+                if (table.ColumnNames[pivotColumn].StartsWith("0"))
+                {
+                    report.AddText("Після МЖВ у заголовку стовпця отримано нуль-маркер. Виконується видалення стовпця " + pivotColumn + ".");
+                    table.RemoveColumn(pivotColumn);
+                }
+
+                report.AddText("Таблиця після виконання МЖВ:");
+                report.AddText(table.ToString());
+
+                step++;
+            }
 
             return table;
         }
@@ -207,6 +291,32 @@ namespace ASPR_Practice1
             return table;
         }
 
+        private int FindFirstZeroRow(SimplexTable table)
+        {
+            for (int i = 0; i < table.Rows - 1; i++)
+            {
+                if (table.RowNames[i].StartsWith("0"))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private int FindFirstPositiveInRow(SimplexTable table, int row)
+        {
+            for (int j = 0; j < table.Columns - 1; j++)
+            {
+                if (table[row, j] > Epsilon)
+                {
+                    return j;
+                }
+            }
+
+            return -1;
+        }
+
         private int FindFirstNegativeFreeMemberRow(SimplexTable table)
         {
             int constantColumn = table.Columns - 1;
@@ -250,15 +360,6 @@ namespace ASPR_Practice1
             return -1;
         }
 
-        /*
-         * Це правило вибору рядка взято зі зразкового алгоритму:
-         *
-         * ratio = вільний_член / елемент_розв'язувального_стовпця
-         *
-         * Береться мінімальне невід'ємне відношення.
-         * Нульове відношення НЕ забороняється, бо у зразку воно теж не
-         * відкидається окремою умовою.
-         */
         private int FindPivotRowByLectureRule(SimplexTable table, int pivotColumn)
         {
             int constantColumn = table.Columns - 1;

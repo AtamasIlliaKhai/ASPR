@@ -112,6 +112,37 @@ namespace ASPR_Practice1
             return result;
         }
 
+        public void RemoveColumn(int columnIndex)
+        {
+            if (columnIndex < 0 || columnIndex >= Columns)
+            {
+                throw new Exception("Неможливо видалити стовпець: неправильний індекс.");
+            }
+
+            double[,] newValues = new double[Rows, Columns - 1];
+            string[] newColumnNames = new string[Columns - 1];
+
+            for (int j = 0, newJ = 0; j < Columns; j++)
+            {
+                if (j == columnIndex)
+                {
+                    continue;
+                }
+
+                newColumnNames[newJ] = ColumnNames[j];
+
+                for (int i = 0; i < Rows; i++)
+                {
+                    newValues[i, newJ] = values[i, j];
+                }
+
+                newJ++;
+            }
+
+            values = newValues;
+            ColumnNames = newColumnNames;
+        }
+
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();

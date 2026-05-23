@@ -3,6 +3,7 @@
     internal enum InequalitySign
     {
         LessOrEqual = 1,
-        GreaterOrEqual = 2
+        GreaterOrEqual = 2,
+        Equals = 3
     }
 }

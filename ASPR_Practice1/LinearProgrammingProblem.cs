@@ -8,18 +8,8 @@ namespace ASPR_Practice1
         public double[] GoalCoefficients { get; private set; }
         public GoalType GoalType { get; private set; }
         public Inequality[] Inequalities { get; private set; }
-
-        /*
-         * PreparedRowsForSimplexTable — це готові рядки для симплекс-таблиці.
-         * Формат одного рядка:
-         *
-         * коефіцієнти x1, x2, ..., xn, вільний член
-         *
-         * Наприклад:
-         * 2, -1, 3, 4, 10
-         */
         public double[,] PreparedRowsForSimplexTable { get; private set; }
-
+        public string[] PreparedRowNames { get; private set; }
         public string OriginalDescription { get; private set; }
 
         public int VariableCount
@@ -46,6 +36,7 @@ namespace ASPR_Practice1
             GoalType = goalType;
             Inequalities = inequalities;
             PreparedRowsForSimplexTable = null;
+            PreparedRowNames = null;
             OriginalDescription = "";
         }
 
@@ -58,6 +49,22 @@ namespace ASPR_Practice1
             GoalCoefficients = goalCoefficients;
             GoalType = goalType;
             PreparedRowsForSimplexTable = preparedRowsForSimplexTable;
+            PreparedRowNames = null;
+            Inequalities = new Inequality[0];
+            OriginalDescription = originalDescription;
+        }
+
+        public LinearProgrammingProblem(
+            double[] goalCoefficients,
+            GoalType goalType,
+            double[,] preparedRowsForSimplexTable,
+            string[] preparedRowNames,
+            string originalDescription)
+        {
+            GoalCoefficients = goalCoefficients;
+            GoalType = goalType;
+            PreparedRowsForSimplexTable = preparedRowsForSimplexTable;
+            PreparedRowNames = preparedRowNames;
             Inequalities = new Inequality[0];
             OriginalDescription = originalDescription;
         }
@@ -84,6 +91,39 @@ namespace ASPR_Practice1
             return rows;
         }
 
+        public string[] GetInitialRowNames()
+        {
+            if (PreparedRowNames != null)
+            {
+                string[] result = new string[PreparedRowNames.Length];
+
+                for (int i = 0; i < PreparedRowNames.Length; i++)
+                {
+                    result[i] = PreparedRowNames[i];
+                }
+
+                return result;
+            }
+
+            string[] rowNames = new string[Inequalities.Length];
+            int yCounter = 1;
+
+            for (int i = 0; i < Inequalities.Length; i++)
+            {
+                if (Inequalities[i].Sign == InequalitySign.Equals)
+                {
+                    rowNames[i] = "0";
+                }
+                else
+                {
+                    rowNames[i] = "y" + yCounter;
+                    yCounter++;
+                }
+            }
+
+            return rowNames;
+        }
+
         private double[,] CopyRows(double[,] source)
         {
             int rows = source.GetLength(0);
@@ -102,22 +142,6 @@ namespace ASPR_Practice1
             return result;
         }
 
-        /*
-         * Власний варіант 3.
-         *
-         * Початкова задача:
-         * Z = 3*x1 + x2 + x3 - x4 -> max
-         *
-         * -x1 + x2 + x3 + x4 <= 2
-         * x1 - x2 + x3 + x4 <= 2
-         * x1 + x2 - x3 + x4 <= 2
-         * x1 + x2 + x3 - x4 <= 2
-         *
-         * За умовою у другій нерівності знак змінено на протилежний:
-         * x1 - x2 + x3 + x4 >= 2
-         *
-         * Для лекційного алгоритму нижче задаються готові рядки таблиці.
-         */
         public static LinearProgrammingProblem CreateVariant3()
         {
             double[] goal = new double[]
@@ -133,6 +157,11 @@ namespace ASPR_Practice1
                 {  1,  1,  1, -1,  2 }
             };
 
+            string[] rowNames = new string[]
+            {
+                "y1", "y2", "y3", "y4"
+            };
+
             string description =
                 "Варіант 3\r\n" +
                 "Z = 3*x1 + 1*x2 + 1*x3 - 1*x4 -> max\r\n" +
@@ -143,17 +172,42 @@ namespace ASPR_Practice1
                 "1*x1 + 1*x2 + 1*x3 - 1*x4 <= 2\r\n" +
                 "xj >= 0";
 
-            return new LinearProgrammingProblem(goal, GoalType.Maximize, rows, description);
+            return new LinearProgrammingProblem(goal, GoalType.Maximize, rows, rowNames, description);
         }
 
-        /*
-         * Тестовий приклад зі зразка Зарі.
-         * Він потрібен для перевірки, що програма повторює логіку зразкового звіту.
-         *
-         * Очікуваний результат:
-         * X = (0; 5.3333; 0; 0.3333)
-         * Z = 10.6667
-         */
+        public static LinearProgrammingProblem CreateVariant3Mixed()
+        {
+            double[] goal = new double[]
+            {
+                3, 1, 1, -1
+            };
+
+            double[,] rows = new double[,]
+            {
+                { -1,  1,  1,  1,  2 },
+                {  1, -1,  1,  1,  2 },
+                {  1,  1, -1,  1,  2 },
+                {  1,  1,  1, -1,  2 }
+            };
+
+            string[] rowNames = new string[]
+            {
+                "0", "y1", "y2", "y3"
+            };
+
+            string description =
+                "Варіант 3 для практичної роботи 1C\r\n" +
+                "Z = 3*x1 + 1*x2 + 1*x3 - 1*x4 -> max\r\n" +
+                "При обмеженнях:\r\n" +
+                "-1*x1 + 1*x2 + 1*x3 + 1*x4 = 2\r\n" +
+                "1*x1 - 1*x2 + 1*x3 + 1*x4 >= 2\r\n" +
+                "1*x1 + 1*x2 - 1*x3 + 1*x4 <= 2\r\n" +
+                "1*x1 + 1*x2 + 1*x3 - 1*x4 <= 2\r\n" +
+                "xj >= 0";
+
+            return new LinearProgrammingProblem(goal, GoalType.Maximize, rows, rowNames, description);
+        }
+
         public static LinearProgrammingProblem CreateZariaSample()
         {
             double[] goal = new double[]
@@ -168,6 +222,11 @@ namespace ASPR_Practice1
                 { 1,  2, 2,  4, 12 }
             };
 
+            string[] rowNames = new string[]
+            {
+                "y1", "y2", "y3"
+            };
+
             string description =
                 "Тестовий приклад зі зразка\r\n" +
                 "Z = 1*x1 + 2*x2 + 1*x3 + 0*x4 -> max\r\n" +
@@ -177,7 +236,36 @@ namespace ASPR_Practice1
                 "1*x1 + 2*x2 + 2*x3 + 4*x4 >= 12\r\n" +
                 "xj >= 0";
 
-            return new LinearProgrammingProblem(goal, GoalType.Maximize, rows, description);
+            return new LinearProgrammingProblem(goal, GoalType.Maximize, rows, rowNames, description);
+        }
+
+        public static LinearProgrammingProblem CreateMixedSampleFromLecture()
+        {
+            double[] goal = new double[]
+            {
+                2, 1
+            };
+
+            double[,] rows = new double[,]
+            {
+                { 1, 2, 4 },
+                { 1, 1, 3 }
+            };
+
+            string[] rowNames = new string[]
+            {
+                "0", "y1"
+            };
+
+            string description =
+                "Тестовий приклад для змішаної системи обмежень\r\n" +
+                "Z = 2*x1 + 1*x2 -> max\r\n" +
+                "При обмеженнях:\r\n" +
+                "1*x1 + 2*x2 = 4\r\n" +
+                "1*x1 + 1*x2 <= 3\r\n" +
+                "xj >= 0";
+
+            return new LinearProgrammingProblem(goal, GoalType.Maximize, rows, rowNames, description);
         }
 
         public override string ToString()

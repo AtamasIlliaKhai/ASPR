@@ -16,16 +16,6 @@ namespace ASPR_Practice1
             RightPart = rightPart;
         }
 
-        /*
-         * Для лекційного алгоритму цей метод НЕ намагається самостійно
-         * перетворювати <= або >=.
-         *
-         * У симплекс-таблицю записуються коефіцієнти саме в тому вигляді,
-         * у якому вони вже підготовлені для таблиці.
-         *
-         * Якщо нерівність треба змінити на протилежну, це робиться до створення
-         * об'єкта Inequality або у методі CreateVariant3().
-         */
         public double[] ToSimplexRow()
         {
             double[] row = new double[Coefficients.Length + 1];
@@ -74,9 +64,13 @@ namespace ASPR_Practice1
             {
                 builder.Append(" <= ");
             }
-            else
+            else if (Sign == InequalitySign.GreaterOrEqual)
             {
                 builder.Append(" >= ");
+            }
+            else
+            {
+                builder.Append(" = ");
             }
 
             builder.Append(RightPart.ToString("0.####"));
