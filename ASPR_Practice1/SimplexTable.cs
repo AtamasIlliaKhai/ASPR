@@ -143,6 +143,48 @@ namespace ASPR_Practice1
             ColumnNames = newColumnNames;
         }
 
+        public void AddRowBeforeLast(string rowName, double[] rowValues)
+        {
+            if (rowValues.Length != Columns)
+            {
+                throw new Exception("Неможливо додати рядок: кількість елементів не збігається з кількістю стовпців таблиці.");
+            }
+
+            double[,] newValues = new double[Rows + 1, Columns];
+            string[] newRowNames = new string[Rows + 1];
+
+            for (int i = 0; i < Rows - 1; i++)
+            {
+                newRowNames[i] = RowNames[i];
+
+                for (int j = 0; j < Columns; j++)
+                {
+                    newValues[i, j] = values[i, j];
+                }
+            }
+
+            int newRowIndex = Rows - 1;
+            newRowNames[newRowIndex] = rowName;
+
+            for (int j = 0; j < Columns; j++)
+            {
+                newValues[newRowIndex, j] = rowValues[j];
+            }
+
+            int zRowNewIndex = Rows;
+            int zRowOldIndex = Rows - 1;
+
+            newRowNames[zRowNewIndex] = RowNames[zRowOldIndex];
+
+            for (int j = 0; j < Columns; j++)
+            {
+                newValues[zRowNewIndex, j] = values[zRowOldIndex, j];
+            }
+
+            values = newValues;
+            RowNames = newRowNames;
+        }
+
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();

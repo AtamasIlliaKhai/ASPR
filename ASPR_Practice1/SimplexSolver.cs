@@ -76,6 +76,54 @@ namespace ASPR_Practice1
             return result;
         }
 
+        public SimplexFullResult FindOptimalSolutionWithTable(LinearProgrammingProblem problem, ReportBuilder report)
+        {
+            SimplexTable table = BuildInitialTable(problem);
+
+            report.AddTitle("Пошук оптимального розв'язку з поверненням фінальної симплекс-таблиці");
+            report.AddText("Постановка задачі:");
+            report.AddText(problem.ToString());
+            report.AddText("");
+            report.AddText("Вхідна симплекс-таблиця:");
+            report.AddText(table.ToString());
+
+            table = CrossOutZeroRows(table, report);
+            report.AddText("Симплекс-таблиця після видалення нуль-рядків:");
+            report.AddText(table.ToString());
+
+            table = MakeReferenceSolution(table, report);
+            table = MakeOptimalSolution(table, report);
+
+            SimplexResult result = BuildResult(problem, table, true);
+
+            report.AddText("Знайдено оптимальний розв'язок:");
+            report.AddText(result.ToString());
+
+            return new SimplexFullResult(result, table);
+        }
+
+        public SimplexFullResult ContinueFromTableToOptimal(SimplexTable table, LinearProgrammingProblem problem, ReportBuilder report)
+        {
+            report.AddTitle("Повторне розв'язання задачі після додавання обмеження");
+            report.AddText("Симплекс-таблиця перед повторним пошуком:");
+            report.AddText(table.ToString());
+
+            table = MakeReferenceSolution(table, report);
+            table = MakeOptimalSolution(table, report);
+
+            SimplexResult result = BuildResult(problem, table, true);
+
+            report.AddText("Результат після повторного розв'язання:");
+            report.AddText(result.ToString());
+
+            return new SimplexFullResult(result, table);
+        }
+
+        public SimplexResult BuildResultFromTable(LinearProgrammingProblem problem, SimplexTable table, bool isOptimal)
+        {
+            return BuildResult(problem, table, isOptimal);
+        }
+
         private SimplexTable BuildInitialTable(LinearProgrammingProblem problem)
         {
             double[,] rowsData = problem.GetSimplexRows();

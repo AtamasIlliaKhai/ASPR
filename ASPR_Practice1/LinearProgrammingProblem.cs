@@ -268,6 +268,70 @@ namespace ASPR_Practice1
             return new LinearProgrammingProblem(goal, GoalType.Maximize, rows, rowNames, description);
         }
 
+        public static LinearProgrammingProblem CreateGomoryTestProblem()
+        {
+            double[] goal = new double[]
+            {
+                1, 1
+            };
+
+            double[,] rows = new double[,]
+            {
+                { 2, 1, 4 },
+                { 1, 2, 4 }
+            };
+
+            string[] rowNames = new string[]
+            {
+                "y1", "y2"
+            };
+
+            string description =
+                "Тестовий приклад для методу Гоморі\r\n" +
+                "Z = 1*x1 + 1*x2 -> max\r\n" +
+                "При обмеженнях:\r\n" +
+                "2*x1 + 1*x2 <= 4\r\n" +
+                "1*x1 + 2*x2 <= 4\r\n" +
+                "xj >= 0\r\n" +
+                "xj - цілі";
+
+            return new LinearProgrammingProblem(goal, GoalType.Maximize, rows, rowNames, description);
+        }
+
+        public static LinearProgrammingProblem CreateVariant3Integer()
+        {
+            double[] goal = new double[]
+            {
+        3, 1, 1, -1
+            };
+
+            double[,] rows = new double[,]
+            {
+        { -1,  1,  1,  1,  2 },
+        {  1, -1,  1,  1,  2 },
+        {  1,  1, -1,  1,  2 },
+        {  1,  1,  1, -1,  2 }
+            };
+
+            string[] rowNames = new string[]
+            {
+        "y1", "y2", "y3", "y4"
+            };
+
+            string description =
+                "Варіант 3 для практичної роботи 1D\r\n" +
+                "Z = 3*x1 + 1*x2 + 1*x3 - 1*x4 -> max\r\n" +
+                "При обмеженнях:\r\n" +
+                "-1*x1 + 1*x2 + 1*x3 + 1*x4 <= 2\r\n" +
+                "1*x1 - 1*x2 + 1*x3 + 1*x4 >= 2\r\n" +
+                "1*x1 + 1*x2 - 1*x3 + 1*x4 <= 2\r\n" +
+                "1*x1 + 1*x2 + 1*x3 - 1*x4 <= 2\r\n" +
+                "xj >= 0\r\n" +
+                "xj - цілі";
+
+            return new LinearProgrammingProblem(goal, GoalType.Maximize, rows, rowNames, description);
+        }
+
         public override string ToString()
         {
             if (!string.IsNullOrEmpty(OriginalDescription))

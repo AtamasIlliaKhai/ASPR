@@ -30,6 +30,9 @@ namespace ASPR_Practice1
                 Console.WriteLine("12 - Пошук оптимального розв'язку задачі ЛП зі змішаною системою");
                 Console.WriteLine("13 - Виконати власний варіант 3 для роботи 1C");
                 Console.WriteLine("14 - Виконати тестовий приклад для змішаної системи");
+                Console.WriteLine("15 - Розв'язати задачу цілочислового ЛП методом Гоморі");
+                Console.WriteLine("16 - Виконати власний варіант 3 для роботи 1D");
+                Console.WriteLine("17 - Виконати тестовий приклад для методу Гоморі");
                 Console.WriteLine("0 - Вихід");
                 Console.WriteLine();
                 Console.Write("Ваш вибір: ");
@@ -89,6 +92,17 @@ namespace ASPR_Practice1
                             RunMixedSample();
                             break;
 
+                        case "15":
+                            RunGomoryManualTask();
+                            break;
+
+                        case "16":
+                            RunGomoryVariant3();
+                            break;
+
+                        case "17":
+                            RunGomoryTestTask();
+                            break;
                         case "0":
                             isRunning = false;
                             break;
@@ -401,6 +415,82 @@ namespace ASPR_Practice1
 
             Console.WriteLine("Оптимальний розв'язок:");
             Console.WriteLine(result);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunGomoryManualTask()
+        {
+            Console.WriteLine("Розв'язання задачі цілочислового лінійного програмування методом Гоморі");
+            LinearProgrammingProblem problem = ReadLinearProgrammingProblem();
+
+            ReportBuilder report = new ReportBuilder();
+            GomorySolver solver = new GomorySolver();
+
+            GomoryResult result = solver.SolveInteger(problem, report);
+
+            Console.WriteLine();
+            Console.WriteLine("Цілочисловий розв'язок:");
+            Console.WriteLine(result);
+
+            Console.WriteLine();
+            Console.WriteLine("Фінальна симплекс-таблиця:");
+            Console.WriteLine(result.FinalTable);
+
+            Console.WriteLine();
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunGomoryVariant3()
+        {
+            Console.WriteLine("Власний варіант 3. Практична робота 1D.");
+            Console.WriteLine("Розв'язання задачі цілочислового лінійного програмування методом Гоморі.");
+            Console.WriteLine();
+
+            LinearProgrammingProblem problem = LinearProgrammingProblem.CreateVariant3Integer();
+
+            Console.WriteLine("Постановка задачі:");
+            Console.WriteLine(problem);
+            Console.WriteLine();
+
+            ReportBuilder report = new ReportBuilder();
+            GomorySolver solver = new GomorySolver();
+
+            GomoryResult result = solver.SolveInteger(problem, report);
+
+            Console.WriteLine("Цілочисловий розв'язок:");
+            Console.WriteLine(result);
+
+            Console.WriteLine("Фінальна симплекс-таблиця:");
+            Console.WriteLine(result.FinalTable);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunGomoryTestTask()
+        {
+            Console.WriteLine("Тестовий приклад для методу Гоморі.");
+            Console.WriteLine();
+
+            LinearProgrammingProblem problem = LinearProgrammingProblem.CreateGomoryTestProblem();
+
+            Console.WriteLine("Постановка задачі:");
+            Console.WriteLine(problem);
+            Console.WriteLine();
+
+            ReportBuilder report = new ReportBuilder();
+            GomorySolver solver = new GomorySolver();
+
+            GomoryResult result = solver.SolveInteger(problem, report);
+
+            Console.WriteLine("Цілочисловий розв'язок:");
+            Console.WriteLine(result);
+
+            Console.WriteLine("Фінальна симплекс-таблиця:");
+            Console.WriteLine(result.FinalTable);
 
             Console.WriteLine("Протокол розрахунку:");
             Console.WriteLine(report.GetReport());
