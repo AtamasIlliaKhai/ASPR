@@ -36,6 +36,9 @@ namespace ASPR_Practice1
                 Console.WriteLine("18 - Розв'язати гру з природою");
                 Console.WriteLine("19 - Виконати тестовий приклад для гри з природою");
                 Console.WriteLine("20 - Виконати власний варіант для практичної роботи 4");
+                Console.WriteLine("21 - Розв'язати транспортну задачу вручну");
+                Console.WriteLine("22 - Виконати тестову транспортну задачу");
+                Console.WriteLine("23 - Виконати власний варіант 3 для практичної роботи 5");
                 Console.WriteLine("0 - Вихід");
                 Console.WriteLine();
                 Console.Write("Ваш вибір: ");
@@ -116,6 +119,17 @@ namespace ASPR_Practice1
 
                         case "20":
                             RunNatureGameVariantTask();
+                            break;
+                        case "21":
+                            RunTransportManualTask();
+                            break;
+
+                        case "22":
+                            RunTransportTestTask();
+                            break;
+
+                        case "23":
+                            RunTransportVariant3Task();
                             break;
                         case "0":
                             isRunning = false;
@@ -617,6 +631,116 @@ namespace ASPR_Practice1
             Console.WriteLine(report.GetReport());
         }
 
+        private static void RunTransportManualTask()
+        {
+            Console.WriteLine("Розв'язання транспортної задачі");
+            Console.WriteLine();
+
+            TransportInput input = ReadTransportInput();
+
+            ReportBuilder report = new ReportBuilder();
+
+            TransportSolution northWest = TransportSolver.SolveNorthWestCorner(input, report);
+            TransportSolution minimum = TransportSolver.SolveMinimumElement(input, report);
+            TransportSolution optimal = TransportSolver.SolvePotentials(input, report);
+
+            Console.WriteLine("Метод північно-західного кута:");
+            Console.WriteLine(northWest);
+
+            Console.WriteLine("Метод мінімального елемента:");
+            Console.WriteLine(minimum);
+
+            Console.WriteLine("Метод потенціалів:");
+            Console.WriteLine(optimal);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunTransportTestTask()
+        {
+            Console.WriteLine("Тестова транспортна задача");
+            Console.WriteLine();
+
+            TransportInput input = TransportInput.CreateTestProblem();
+
+            ReportBuilder report = new ReportBuilder();
+
+            TransportSolution northWest = TransportSolver.SolveNorthWestCorner(input, report);
+            TransportSolution minimum = TransportSolver.SolveMinimumElement(input, report);
+            TransportSolution optimal = TransportSolver.SolvePotentials(input, report);
+
+            Console.WriteLine("Метод північно-західного кута:");
+            Console.WriteLine(northWest);
+
+            Console.WriteLine("Метод мінімального елемента:");
+            Console.WriteLine(minimum);
+
+            Console.WriteLine("Метод потенціалів:");
+            Console.WriteLine(optimal);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunTransportVariant3Task()
+        {
+            Console.WriteLine("Власний варіант 3. Практична робота 5");
+            Console.WriteLine();
+
+            TransportInput input = TransportInput.CreateVariant3();
+
+            ReportBuilder report = new ReportBuilder();
+
+            TransportSolution northWest = TransportSolver.SolveNorthWestCorner(input, report);
+            TransportSolution minimum = TransportSolver.SolveMinimumElement(input, report);
+            TransportSolution optimal = TransportSolver.SolvePotentials(input, report);
+
+            Console.WriteLine("Метод північно-західного кута:");
+            Console.WriteLine(northWest);
+
+            Console.WriteLine("Метод мінімального елемента:");
+            Console.WriteLine(minimum);
+
+            Console.WriteLine("Метод потенціалів:");
+            Console.WriteLine(optimal);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static TransportInput ReadTransportInput()
+        {
+            Console.Write("Кількість постачальників: ");
+            int suppliers = ReadInt();
+
+            Console.Write("Кількість споживачів: ");
+            int consumers = ReadInt();
+
+            double[,] costs = new double[suppliers, consumers];
+
+            Console.WriteLine("Введіть матрицю вартостей перевезення.");
+
+            for (int i = 0; i < suppliers; i++)
+            {
+                double[] row = ReadDoubleArray(consumers);
+
+                for (int j = 0; j < consumers; j++)
+                {
+                    costs[i, j] = row[j];
+                }
+            }
+
+            Console.WriteLine("Введіть запаси постачальників:");
+            double[] supplies = ReadDoubleArray(suppliers);
+
+            Console.WriteLine("Введіть потреби споживачів:");
+            double[] demands = ReadDoubleArray(consumers);
+
+            string description = "Транспортна задача, введена користувачем";
+
+            return new TransportInput(costs, supplies, demands, description);
+        }
         private static LinearProgrammingProblem ReadLinearProgrammingProblem()
         {
             Console.Write("Кількість змінних: ");
