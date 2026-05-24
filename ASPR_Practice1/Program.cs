@@ -33,6 +33,9 @@ namespace ASPR_Practice1
                 Console.WriteLine("15 - Розв'язати задачу цілочислового ЛП методом Гоморі");
                 Console.WriteLine("16 - Виконати власний варіант 3 для роботи 1D");
                 Console.WriteLine("17 - Виконати тестовий приклад для методу Гоморі");
+                Console.WriteLine("18 - Розв'язати гру з природою");
+                Console.WriteLine("19 - Виконати тестовий приклад для гри з природою");
+                Console.WriteLine("20 - Виконати власний варіант для практичної роботи 4");
                 Console.WriteLine("0 - Вихід");
                 Console.WriteLine();
                 Console.Write("Ваш вибір: ");
@@ -102,6 +105,17 @@ namespace ASPR_Practice1
 
                         case "17":
                             RunGomoryTestTask();
+                            break;
+                        case "18":
+                            RunNatureGameManualTask();
+                            break;
+
+                        case "19":
+                            RunNatureGameTestTask();
+                            break;
+
+                        case "20":
+                            RunNatureGameVariantTask();
                             break;
                         case "0":
                             isRunning = false;
@@ -321,6 +335,113 @@ namespace ASPR_Practice1
             Console.WriteLine(report.GetReport());
         }
 
+        private static void RunNatureGameManualTask()
+        {
+            Console.WriteLine("Розв'язання гри з природою");
+            Console.WriteLine();
+
+            double[,] matrix = ReadDoubleMatrixFromConsole();
+
+            Console.Write("Введіть коефіцієнт оптимізму для критерію Гурвіца від 0 до 1: ");
+            double alpha = ReadDouble();
+
+            Console.WriteLine("Введіть ймовірності станів природи для критерію Байєса.");
+            double[] probabilities = ReadDoubleArray(matrix.GetLength(1));
+
+            ReportBuilder report = new ReportBuilder();
+            NatureGameResult result = MatrixGameSolver.SolveNatureGame(matrix, alpha, probabilities, report);
+
+            Console.WriteLine();
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunNatureGameTestTask()
+        {
+            Console.WriteLine("Тестовий приклад для гри з природою");
+            Console.WriteLine();
+
+            NatureGameInput input = NatureGameInput.CreatePractice4Test1();
+
+            ReportBuilder report = new ReportBuilder();
+            NatureGameResult result = MatrixGameSolver.SolveNatureGame(input, report);
+
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunNatureGameVariantTask()
+        {
+            Console.WriteLine("Власний варіант 3 для практичної роботи 4");
+            Console.WriteLine();
+
+            NatureGameInput input = NatureGameInput.CreatePractice4Variant3();
+
+            ReportBuilder report = new ReportBuilder();
+            NatureGameResult result = MatrixGameSolver.SolveNatureGame(input, report);
+
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static double[,] ReadDoubleMatrixFromConsole()
+        {
+            Console.Write("Кількість рядків матриці: ");
+            int rows = ReadInt();
+
+            Console.Write("Кількість стовпців матриці: ");
+            int columns = ReadInt();
+
+            double[,] matrix = new double[rows, columns];
+
+            Console.WriteLine("Введіть елементи матриці. Елементи одного рядка вводьте через пробіл, кому або крапку з комою.");
+
+            for (int i = 0; i < rows; i++)
+            {
+                bool isCorrect = false;
+
+                while (!isCorrect)
+                {
+                    Console.Write("Рядок " + (i + 1) + ": ");
+                    string line = Console.ReadLine();
+
+                    string[] parts = line.Split(
+                        new char[] { ' ', ',', ';' },
+                        StringSplitOptions.RemoveEmptyEntries
+                    );
+
+                    if (parts.Length != columns)
+                    {
+                        Console.WriteLine("Помилка: потрібно ввести " + columns + " чисел.");
+                        continue;
+                    }
+
+                    isCorrect = true;
+
+                    for (int j = 0; j < columns; j++)
+                    {
+                        double value;
+
+                        if (!double.TryParse(parts[j].Replace('.', ','), out value))
+                        {
+                            Console.WriteLine("Помилка формату числа.");
+                            isCorrect = false;
+                            break;
+                        }
+
+                        matrix[i, j] = value;
+                    }
+                }
+            }
+
+            return matrix;
+        }
         private static void RunMixedReferenceSolutionTask()
         {
             Console.WriteLine("Пошук опорного розв'язку задачі ЛП зі змішаною системою обмежень");
