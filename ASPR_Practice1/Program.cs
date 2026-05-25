@@ -42,6 +42,9 @@ namespace ASPR_Practice1
                 Console.WriteLine("24 - Розв'язати задачу про призначення вручну");
                 Console.WriteLine("25 - Виконати тестову задачу про призначення");
                 Console.WriteLine("26 - Виконати власний варіант 3 для практичної роботи 6");
+                Console.WriteLine("27 - Розв'язати задачу сіткового планування вручну");
+                Console.WriteLine("28 - Виконати тестову задачу сіткового планування");
+                Console.WriteLine("29 - Виконати власний варіант для практичної роботи 7");
                 Console.WriteLine("0 - Вихід");
                 Console.WriteLine();
                 Console.Write("Ваш вибір: ");
@@ -144,6 +147,17 @@ namespace ASPR_Practice1
 
                         case "26":
                             RunAssignmentVariant3Task();
+                            break;
+                        case "27":
+                            RunNetworkPlanningManualTask();
+                            break;
+
+                        case "28":
+                            RunNetworkPlanningTestTask();
+                            break;
+
+                        case "29":
+                            RunNetworkPlanningVariantTask();
                             break;
                         case "0":
                             isRunning = false;
@@ -844,6 +858,140 @@ namespace ASPR_Practice1
 
             return new TransportInput(costs, supplies, demands, description);
         }
+
+        private static void RunNetworkPlanningManualTask()
+        {
+            Console.WriteLine("Розв'язання задачі сіткового планування");
+            Console.WriteLine();
+
+            NetworkPlanningInput input = ReadNetworkPlanningInput();
+
+            ReportBuilder report = new ReportBuilder();
+
+            NetworkPlanningResult result = NetworkPlanningSolver.Solve(input, report);
+
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunNetworkPlanningTestTask()
+        {
+            Console.WriteLine("Тестова задача сіткового планування");
+            Console.WriteLine();
+
+            NetworkPlanningInput input = NetworkPlanningInput.CreateTestProblem();
+
+            ReportBuilder report = new ReportBuilder();
+
+            NetworkPlanningResult result = NetworkPlanningSolver.Solve(input, report);
+
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunNetworkPlanningVariantTask()
+        {
+            Console.WriteLine("Власний варіант. Практична робота 7");
+            Console.WriteLine();
+
+            NetworkPlanningInput input = NetworkPlanningInput.CreateVariant3();
+
+            ReportBuilder report = new ReportBuilder();
+
+            NetworkPlanningResult result = NetworkPlanningSolver.Solve(input, report);
+
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static NetworkPlanningInput ReadNetworkPlanningInput()
+        {
+            Console.Write("Кількість робіт: ");
+            int count = ReadInt();
+
+            ProjectTask[] tasks = new ProjectTask[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                int id = i + 1;
+
+                Console.WriteLine();
+                Console.WriteLine("Робота " + id);
+
+                Console.WriteLine("Введіть попередні роботи через пробіл, кому або крапку з комою.");
+                Console.WriteLine("Якщо попередників немає, введіть 0.");
+                Console.Write("Попередники: ");
+
+                int[] predecessors = ReadPredecessors();
+
+                Console.Write("Тривалість: ");
+                int duration = ReadInt();
+
+                Console.Write("Кількість людей: ");
+                int people = ReadInt();
+
+                tasks[i] = new ProjectTask(id, predecessors, duration, people);
+            }
+
+            return new NetworkPlanningInput(tasks, "Задача сіткового планування, введена користувачем");
+        }
+
+        private static int[] ReadPredecessors()
+        {
+            string line = Console.ReadLine();
+
+            if (line == null)
+            {
+                return new int[] { };
+            }
+
+            line = line.Trim();
+
+            if (line == "" || line == "0" || line == "-")
+            {
+                return new int[] { };
+            }
+
+            string[] parts = line.Split(
+                new char[] { ' ', ',', ';' },
+                StringSplitOptions.RemoveEmptyEntries
+            );
+
+            int count = 0;
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                int value;
+
+                if (int.TryParse(parts[i], out value) && value > 0)
+                {
+                    count++;
+                }
+            }
+
+            int[] result = new int[count];
+            int index = 0;
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                int value;
+
+                if (int.TryParse(parts[i], out value) && value > 0)
+                {
+                    result[index] = value;
+                    index++;
+                }
+            }
+
+            return result;
+        }
+
         private static LinearProgrammingProblem ReadLinearProgrammingProblem()
         {
             Console.Write("Кількість змінних: ");
