@@ -43,6 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssignmentInput.cs" />
+    <Compile Include="AssignmentSolution.cs" />
+    <Compile Include="AssignmentSolver.cs" />
     <Compile Include="GoalType.cs" />
     <Compile Include="GomoryResult.cs" />
     <Compile Include="GomorySolver.cs" />

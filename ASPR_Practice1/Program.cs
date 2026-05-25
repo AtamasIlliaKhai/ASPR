@@ -39,6 +39,9 @@ namespace ASPR_Practice1
                 Console.WriteLine("21 - Розв'язати транспортну задачу вручну");
                 Console.WriteLine("22 - Виконати тестову транспортну задачу");
                 Console.WriteLine("23 - Виконати власний варіант 3 для практичної роботи 5");
+                Console.WriteLine("24 - Розв'язати задачу про призначення вручну");
+                Console.WriteLine("25 - Виконати тестову задачу про призначення");
+                Console.WriteLine("26 - Виконати власний варіант 3 для практичної роботи 6");
                 Console.WriteLine("0 - Вихід");
                 Console.WriteLine();
                 Console.Write("Ваш вибір: ");
@@ -130,6 +133,17 @@ namespace ASPR_Practice1
 
                         case "23":
                             RunTransportVariant3Task();
+                            break;
+                        case "24":
+                            RunAssignmentManualTask();
+                            break;
+
+                        case "25":
+                            RunAssignmentTestTask();
+                            break;
+
+                        case "26":
+                            RunAssignmentVariant3Task();
                             break;
                         case "0":
                             isRunning = false;
@@ -531,6 +545,95 @@ namespace ASPR_Practice1
             Console.WriteLine(optimalResult);
             Console.WriteLine("Протокол пошуку оптимального розв'язку:");
             Console.WriteLine(optimalReport.GetReport());
+        }
+
+        private static void RunAssignmentManualTask()
+        {
+            Console.WriteLine("Розв'язання задачі про призначення");
+            Console.WriteLine();
+
+            AssignmentInput input = ReadAssignmentInput();
+
+            ReportBuilder report = new ReportBuilder();
+
+            AssignmentSolution solution = AssignmentSolver.Solve(input, report);
+
+            Console.WriteLine(solution);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunAssignmentTestTask()
+        {
+            Console.WriteLine("Тестова задача про призначення");
+            Console.WriteLine();
+
+            AssignmentInput input = AssignmentInput.CreateTestProblem();
+
+            ReportBuilder report = new ReportBuilder();
+
+            AssignmentSolution solution = AssignmentSolver.Solve(input, report);
+
+            Console.WriteLine(solution);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunAssignmentVariant3Task()
+        {
+            Console.WriteLine("Власний варіант 3. Практична робота 6");
+            Console.WriteLine();
+
+            AssignmentInput input = AssignmentInput.CreateVariant3();
+
+            ReportBuilder report = new ReportBuilder();
+
+            AssignmentSolution solution = AssignmentSolver.Solve(input, report);
+
+            Console.WriteLine(solution);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static AssignmentInput ReadAssignmentInput()
+        {
+            Console.Write("Кількість виконавців: ");
+            int workers = ReadInt();
+
+            Console.Write("Кількість робіт: ");
+            int jobs = ReadInt();
+
+            double[,] matrix = new double[workers, jobs];
+
+            Console.WriteLine("Введіть матрицю значень.");
+            Console.WriteLine("Кожен рядок вводьте через пробіл, кому або крапку з комою.");
+
+            for (int i = 0; i < workers; i++)
+            {
+                Console.Write("Рядок A" + (i + 1) + ": ");
+                double[] row = ReadDoubleArray(jobs);
+
+                for (int j = 0; j < jobs; j++)
+                {
+                    matrix[i, j] = row[j];
+                }
+            }
+
+            Console.WriteLine("Оберіть тип задачі:");
+            Console.WriteLine("1 - мінімізація");
+            Console.WriteLine("2 - максимізація");
+            Console.Write("Ваш вибір: ");
+
+            int type = ReadInt();
+
+            bool isMaximization = type == 2;
+
+            string description = "Задача про призначення, введена користувачем";
+
+            return new AssignmentInput(matrix, isMaximization, description);
         }
 
         private static void RunMixedSample()
