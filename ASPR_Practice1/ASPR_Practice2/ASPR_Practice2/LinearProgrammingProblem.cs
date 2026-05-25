@@ -51,13 +51,50 @@ namespace ASPR_Practice1
             Description = description;
         }
 
-        public static LinearProgrammingProblem CreateVariant3Practice2()
+        public static LinearProgrammingProblem CreatePractice1BVariant3Primal()
         {
             double[,] coefficients = new double[,]
             {
-                { 1,  1, -1, -2 },
-                { 1,  1,  1, -1 },
-                { 2, -1,  3,  4 }
+                { -1,  1,  1,  1 },
+                {  1, -1,  1,  1 },
+                {  1,  1, -1,  1 },
+                {  1,  1,  1, -1 }
+            };
+
+            InequalitySign[] signs = new InequalitySign[]
+            {
+                InequalitySign.LessOrEqual,
+                InequalitySign.LessOrEqual,
+                InequalitySign.LessOrEqual,
+                InequalitySign.LessOrEqual
+            };
+
+            double[] rightSides = new double[]
+            {
+                2, 2, 2, 2
+            };
+
+            double[] objective = new double[]
+            {
+                3, 1, 1, -1
+            };
+
+            return new LinearProgrammingProblem(
+                coefficients,
+                signs,
+                rightSides,
+                objective,
+                OptimizationType.Maximize,
+                "Пряма задача Z. Практична робота 1B, варіант 3.");
+        }
+
+        public static LinearProgrammingProblem CreateLectureDualExamplePrimal()
+        {
+            double[,] coefficients = new double[,]
+            {
+                { 1, 1, -1, -2 },
+                { 1, 1,  1, -1 },
+                { 2,-1,  3,  4 }
             };
 
             InequalitySign[] signs = new InequalitySign[]
@@ -69,9 +106,7 @@ namespace ASPR_Practice1
 
             double[] rightSides = new double[]
             {
-                6,
-                5,
-                10
+                6, 5, 10
             };
 
             double[] objective = new double[]
@@ -85,84 +120,7 @@ namespace ASPR_Practice1
                 rightSides,
                 objective,
                 OptimizationType.Maximize,
-                "Практична робота 2. Варіант 3. У другій нерівності знак змінено на протилежний.");
-        }
-
-        public static LinearProgrammingProblem CreateTestProblem1()
-        {
-            double[,] coefficients = new double[,]
-            {
-                { 1, 1 },
-                { 1, 0 },
-                { 0, 1 }
-            };
-
-            InequalitySign[] signs = new InequalitySign[]
-            {
-                InequalitySign.LessOrEqual,
-                InequalitySign.LessOrEqual,
-                InequalitySign.LessOrEqual
-            };
-
-            double[] rightSides = new double[]
-            {
-                4,
-                2,
-                3
-            };
-
-            double[] objective = new double[]
-            {
-                3, 2
-            };
-
-            return new LinearProgrammingProblem(
-                coefficients,
-                signs,
-                rightSides,
-                objective,
-                OptimizationType.Maximize,
-                "Тестовий приклад 1. Очікуваний результат: x1 = 2, x2 = 2, Fmax = 10.");
-        }
-
-        public static LinearProgrammingProblem CreateTestProblem2()
-        {
-            double[,] coefficients = new double[,]
-            {
-                { 1, 2 },
-                { 2, 1 },
-                { 1, 0 },
-                { 0, 1 }
-            };
-
-            InequalitySign[] signs = new InequalitySign[]
-            {
-                InequalitySign.GreaterOrEqual,
-                InequalitySign.GreaterOrEqual,
-                InequalitySign.LessOrEqual,
-                InequalitySign.LessOrEqual
-            };
-
-            double[] rightSides = new double[]
-            {
-                4,
-                4,
-                4,
-                4
-            };
-
-            double[] objective = new double[]
-            {
-                1, 1
-            };
-
-            return new LinearProgrammingProblem(
-                coefficients,
-                signs,
-                rightSides,
-                objective,
-                OptimizationType.Maximize,
-                "Тестовий приклад 2. Задача з обмеженнями типу >=.");
+                "Лекційний приклад пари двоїстих задач.");
         }
 
         public override string ToString()
@@ -176,26 +134,7 @@ namespace ASPR_Practice1
 
             for (int j = 0; j < VariableCount; j++)
             {
-                if (j > 0)
-                {
-                    if (Objective[j] >= 0)
-                    {
-                        builder.Append(" + ");
-                    }
-                    else
-                    {
-                        builder.Append(" - ");
-                    }
-
-                    builder.Append(Math.Abs(Objective[j]).ToString("0.####"));
-                }
-                else
-                {
-                    builder.Append(Objective[j].ToString("0.####"));
-                }
-
-                builder.Append("x");
-                builder.Append(j + 1);
+                AppendTerm(builder, Objective[j], "x" + (j + 1), j == 0);
             }
 
             if (OptimizationType == OptimizationType.Maximize)
@@ -213,26 +152,7 @@ namespace ASPR_Practice1
             {
                 for (int j = 0; j < VariableCount; j++)
                 {
-                    if (j > 0)
-                    {
-                        if (Coefficients[i, j] >= 0)
-                        {
-                            builder.Append(" + ");
-                        }
-                        else
-                        {
-                            builder.Append(" - ");
-                        }
-
-                        builder.Append(Math.Abs(Coefficients[i, j]).ToString("0.####"));
-                    }
-                    else
-                    {
-                        builder.Append(Coefficients[i, j].ToString("0.####"));
-                    }
-
-                    builder.Append("x");
-                    builder.Append(j + 1);
+                    AppendTerm(builder, Coefficients[i, j], "x" + (j + 1), j == 0);
                 }
 
                 builder.Append(" ");
@@ -256,6 +176,29 @@ namespace ASPR_Practice1
             builder.AppendLine("xj >= 0");
 
             return builder.ToString();
+        }
+
+        private void AppendTerm(StringBuilder builder, double coefficient, string variableName, bool first)
+        {
+            if (first)
+            {
+                builder.Append(coefficient.ToString("0.####"));
+                builder.Append(variableName);
+                return;
+            }
+
+            if (coefficient >= 0)
+            {
+                builder.Append(" + ");
+                builder.Append(coefficient.ToString("0.####"));
+            }
+            else
+            {
+                builder.Append(" - ");
+                builder.Append(Math.Abs(coefficient).ToString("0.####"));
+            }
+
+            builder.Append(variableName);
         }
     }
 }

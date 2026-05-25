@@ -1,5 +1,7 @@
-﻿using System;
+﻿using ASPR_Practice1;
+using System;
 using System.Globalization;
+using System.Text;
 
 namespace ASPR_Practice1
 {
@@ -7,20 +9,25 @@ namespace ASPR_Practice1
     {
         private static void Main(string[] args)
         {
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
             while (true)
             {
                 Console.Clear();
 
-                Console.WriteLine("Практична робота 2");
-                Console.WriteLine("Симплекс-метод. Модифіковані жорданові виключення");
+                Console.WriteLine("Практична робота №2");
+                Console.WriteLine("Двоїста задача лінійного програмування");
+                Console.WriteLine("Симплекс-метод, модифіковані жорданові виключення, графічний метод");
                 Console.WriteLine();
-                Console.WriteLine("1 - Розв'язати задачу вручну");
-                Console.WriteLine("2 - Виконати тестовий приклад 1");
-                Console.WriteLine("3 - Виконати тестовий приклад 2");
-                Console.WriteLine("4 - Виконати власний варіант 3");
+                Console.WriteLine("1 - Розв'язати задачу лінійного програмування вручну");
+                Console.WriteLine("2 - Розв'язати пряму задачу Z з практичної 1B, варіант 3");
+                Console.WriteLine("3 - Побудувати і розв'язати двоїсту задачу W для варіанту 3");
+                Console.WriteLine("4 - Розв'язати пару взаємно двоїстих задач Z і W");
+                Console.WriteLine("5 - Розв'язати W безпосередньо як задачу практичної 1B");
+                Console.WriteLine("6 - Графічно розв'язати пряму задачу варіанту 3");
+                Console.WriteLine("7 - Графічно розв'язати двоїсту задачу варіанту 3");
+                Console.WriteLine("8 - Графічно розв'язати пару взаємно двоїстих задач");
                 Console.WriteLine("0 - Вихід");
                 Console.WriteLine();
                 Console.Write("Ваш вибір: ");
@@ -41,15 +48,31 @@ namespace ASPR_Practice1
                     }
                     else if (choice == "2")
                     {
-                        RunProblem(LinearProgrammingProblem.CreateTestProblem1());
+                        RunSimplexProblem(LinearProgrammingProblem.CreatePractice1BVariant3Primal());
                     }
                     else if (choice == "3")
                     {
-                        RunProblem(LinearProgrammingProblem.CreateTestProblem2());
+                        RunDualProblem();
                     }
                     else if (choice == "4")
                     {
-                        RunProblem(LinearProgrammingProblem.CreateVariant3Practice2());
+                        RunDualPair();
+                    }
+                    else if (choice == "5")
+                    {
+                        RunDirectDualAsSimplexProblem();
+                    }
+                    else if (choice == "6")
+                    {
+                        RunGraphicalPrimal();
+                    }
+                    else if (choice == "7")
+                    {
+                        RunGraphicalDual();
+                    }
+                    else if (choice == "8")
+                    {
+                        RunGraphicalPair();
                     }
                     else
                     {
@@ -67,13 +90,18 @@ namespace ASPR_Practice1
             }
         }
 
-        private static void RunProblem(LinearProgrammingProblem problem)
+        private static void RunManualProblem()
+        {
+            LinearProgrammingProblem problem = ReadProblemFromConsole();
+            RunSimplexProblem(problem);
+        }
+
+        private static void RunSimplexProblem(LinearProgrammingProblem problem)
         {
             Console.WriteLine("Постановка задачі:");
             Console.WriteLine(problem);
 
             ReportBuilder report = new ReportBuilder();
-
             ModifiedJordanSimplexSolver solver = new ModifiedJordanSimplexSolver();
 
             SimplexResult result = solver.Solve(problem, report);
@@ -85,11 +113,129 @@ namespace ASPR_Practice1
             Console.WriteLine(report.GetReport());
         }
 
-        private static void RunManualProblem()
+        private static void RunDualProblem()
         {
-            LinearProgrammingProblem problem = ReadProblemFromConsole();
+            LinearProgrammingProblem primal = LinearProgrammingProblem.CreatePractice1BVariant3Primal();
+            LinearProgrammingProblem dual = DualProblemBuilder.BuildDualForMaxLessOrEqual(primal);
 
-            RunProblem(problem);
+            Console.WriteLine("Пряма задача Z:");
+            Console.WriteLine(primal);
+
+            Console.WriteLine("Побудована двоїста задача W:");
+            Console.WriteLine(dual);
+
+            ReportBuilder report = new ReportBuilder();
+            ModifiedJordanSimplexSolver solver = new ModifiedJordanSimplexSolver();
+
+            SimplexResult result = solver.Solve(dual, report);
+
+            Console.WriteLine("Результат розв'язання двоїстої задачі W:");
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunDualPair()
+        {
+            LinearProgrammingProblem primal = LinearProgrammingProblem.CreatePractice1BVariant3Primal();
+
+            ReportBuilder report = new ReportBuilder();
+            DualPairSolver solver = new DualPairSolver();
+
+            DualPairResult result = solver.SolvePair(primal, report);
+
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол розрахунку:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunDirectDualAsSimplexProblem()
+        {
+            LinearProgrammingProblem primal = LinearProgrammingProblem.CreatePractice1BVariant3Primal();
+            LinearProgrammingProblem dual = DualProblemBuilder.BuildDualForMaxLessOrEqual(primal);
+
+            Console.WriteLine("Двоїста задача W розв'язується безпосередньо як окрема задача ЛП.");
+            Console.WriteLine();
+
+            RunSimplexProblem(dual);
+        }
+
+        private static void RunGraphicalPrimal()
+        {
+            GraphicalProblem problem = GraphicalProblem.CreatePractice2Variant3Primal();
+
+            ReportBuilder report = new ReportBuilder();
+            GraphicalSolver solver = new GraphicalSolver();
+
+            GraphicalResult result = solver.Solve(problem, report);
+
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол графічного розв'язання:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunGraphicalDual()
+        {
+            GraphicalProblem primal = GraphicalProblem.CreatePractice2Variant3Primal();
+            GraphicalProblem dual = GraphicalProblem.CreatePractice2Variant3Dual();
+
+            Console.WriteLine("Пряма задача для графічного методу:");
+            Console.WriteLine(primal);
+
+            Console.WriteLine("Двоїста задача для графічного методу:");
+            Console.WriteLine(dual);
+
+            ReportBuilder report = new ReportBuilder();
+            GraphicalSolver solver = new GraphicalSolver();
+
+            GraphicalResult result = solver.Solve(dual, report);
+
+            Console.WriteLine(result);
+
+            Console.WriteLine("Протокол графічного розв'язання:");
+            Console.WriteLine(report.GetReport());
+        }
+
+        private static void RunGraphicalPair()
+        {
+            GraphicalProblem primal = GraphicalProblem.CreatePractice2Variant3Primal();
+            GraphicalProblem dual = GraphicalProblem.CreatePractice2Variant3Dual();
+
+            ReportBuilder reportPrimal = new ReportBuilder();
+            ReportBuilder reportDual = new ReportBuilder();
+
+            GraphicalSolver solver = new GraphicalSolver();
+
+            GraphicalResult primalResult = solver.Solve(primal, reportPrimal);
+            GraphicalResult dualResult = solver.Solve(dual, reportDual);
+
+            Console.WriteLine("Графічне розв'язання прямої задачі Z:");
+            Console.WriteLine(primalResult);
+
+            Console.WriteLine("Графічне розв'язання двоїстої задачі W:");
+            Console.WriteLine(dualResult);
+
+            Console.WriteLine("Порівняння:");
+            if (primalResult.IsUnbounded && dualResult.IsInfeasible)
+            {
+                Console.WriteLine("Пряма задача є необмеженою, а двоїста задача є несумісною. Це відповідає теоремі двоїстості.");
+            }
+            else if (primalResult.IsOptimal && dualResult.IsOptimal)
+            {
+                Console.WriteLine("Z = " + primalResult.ObjectiveValue.ToString("0.####"));
+                Console.WriteLine("W = " + dualResult.ObjectiveValue.ToString("0.####"));
+                Console.WriteLine("Різниця |Z - W| = " + Math.Abs(primalResult.ObjectiveValue - dualResult.ObjectiveValue).ToString("0.####"));
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Протокол прямої задачі:");
+            Console.WriteLine(reportPrimal.GetReport());
+
+            Console.WriteLine("Протокол двоїстої задачі:");
+            Console.WriteLine(reportDual.GetReport());
         }
 
         private static LinearProgrammingProblem ReadProblemFromConsole()
